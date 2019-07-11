@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div id="pageContainer"></div>
+    <script>
+        //创建分页按钮
+        var pageCon = new PageComponent({
+            el: document.getElementById('pageContainer'),//分页按钮容器ul
+            total: 80,
+            clickCallback: function () {//按钮点击事件
+                console.log(pageCon.total, pageCon.page)
+            },
+            switchPageFoo: function () {//跳页按钮事件
+                console.log(pageCon.total, pageCon.page)
+            },
+            changePageSizeFoo: function () {
+                console.log(pageCon.total, pageCon.page)
+            }
+        });//创建分页按钮 end
+
+
+        function PageComponent(obj) {
+            this.el = obj.el;
+            this.pageSize = obj.pageSize || 10;
+            this.minPageSize = obj.minPageSize || 10;
+            this.maxPageSize = obj.maxPageSize || 50;
+            this.btnNum = obj.btnNum || 7;
+            this.total = obj.total || 1;
+
+            this.clickCallback = obj.clickCallback || function () { };
+            this.switchPageFoo = obj.switchPageFoo || function () { };
+            this.changePageSizeFoo = obj.changePageSizeFoo || function () { };
+
+            this.page = 1;
+            this.totalPage = Math.ceil(this.total / this.pageSize);
+            this.first = 1;
+            this.end = this.totalPage <= this.btnNum ? this.totalPage : 7;
+            this.pageArr = [];
+            this.temp = function (class_, text, page) {
+                return '<li class="page-li"><a class="page-btn  ' + class_ + '  " data-page="' + page + '">' + text + '</a></li>';
+            }
+            var that = this;
+            this.el.addEventListener('click',function (e) {  
+                var target = e.target;
+                var className = target.className;
+                var id = target.id;
+                if(!!className.match(/(^|\s+)enabled(\s+|$)/)){
+                    that.page = event.target.getAttribute('data-page')
+                    that.init(that.total, that.page);
+                    that.clickCallback();
+                }else if(id=='switchPageBtn'){
+                    that.page = parseInt(document.getElementById('pageInput').value);
+                    if (that.page < 1) { that.page = 1; } else if (that.page > that.totalPage) { that.page = that.totalPage; }
+                    that.init(that.total, that.page);
+                    that.switchPageFoo();
+                }else if(id=='pageSizeBtn'){
+                    var val = parseInt(document.getElementById('pageSizeInput').value);
+                    if (val < that.minPageSize) { val = that.minPageSize; } else if (val > that.maxPageSize) { val = that.maxPageSize; }
+                    that.pageSize = val;
+                    that.init(that.total, 1);
+                    that.changePageSizeFoo();
+                }
+
+            },false);
+            this.el.addEventListener('change', function (e) {
+                var target = e.target;
+                var className = target.className;
+                var id = target.id;
+                if (id == 'pageSizeInput') {
+                    var val = parseInt(target.value);
+                    if (val < that.minPageSize) { val = that.minPageSize; } else if (val > that.maxPageSize) { val = that.maxPageSize; }
+                    that.pageSize = val;
+                    target.value = val;
+                }else if (id == 'pageInput'){
+                    that.page = parseInt(target.value);
+                    if (that.page < 1) { that.page = 1; } else if (that.page > that.totalPage) { that.page = that.totalPage; }
+                    target.value = that.page;
+                }
+            })
+
+            this.init = function (total, page) {
+                this.total = parseInt(total) || this.total;
+                this.page = parseInt(page) || this.page;
+                var html = '';
+                var page = this.page;
+                var btnNum_ = (this.totalPage > this.btnNum) ? this.btnNum : this.totalPage;
+                this.totalPage = Math.ceil(this.total / this.pageSize);
+                var mid = Math.ceil( btnNum_ / 2);
+                var half = mid - 1;
+                if (page >= this.totalPage) page = this.totalPage;
+                if (page <= mid){
+                    this.first = 1;
+                    this.end = btnNum_;
+                }else if(page > mid && page < (this.totalPage - half)){
+                    this.first = page - half;
+                    this.end = page + half;
+                }else if(page > (this.totalPage - half)){
+                    this.first  = this.totalPage - btnNum_ + 1;
+                    this.end = this.totalPage;
+                }
+
+                this.el.innerHTML='';
+                if (page == this.first) {
+                    html += this.temp('disabled', '首页', 1);
+                    html += this.temp('disabled', '上一页', 1);
+                } else {
+                    html += this.temp('enabled', '首页', 1);
+                    html += this.temp('enabled', '上一页', page - 1);
+                }
+                for (var i = this.first; i <= this.end; i++) {
+                    // pageArr.push(i);
+                    if (i == page) {
+                        html += this.temp('active', i, i);
+                    } else {
+                        html += this.temp('enabled', i, i);
+                    }
+                }
+                if (page == this.totalPage) {
+                    html += this.temp('disabled', '下一页', 1);
+                    html += this.temp('disabled', '末页', 1);
+                } else {
+                    html += this.temp('enabled', '下一页', page + 1);
+                    html += this.temp('enabled', '末页', this.totalPage);
+                }
+                html += '<span class="page-li"><i style="margin:0 10px;" class="page-btn">共' + this.totalPage + '页</i><input class="page-btn" id="pageInput" style="width:40px;margin-left:20px;" type="number" value="' + this.page + '"><input id="switchPageBtn" class="page-btn" type="button" value="跳页"><i style="margin-left:20px;">每页显示</i><input type="number" style="width:40px;" class="page-btn" id="pageSizeInput" value="' + this.pageSize + '"><i style="margin-right:10px;">条</i><input id="pageSizeBtn" class="page-btn" type="button" value="确定"></span>'
+                this.el.innerHTML = html;
+            };
+            if(!this.el.className.match(/(^|\s+)pageComponentEl($|\s+)/)){
+                this.el.setAttribute('class', (this.el.getAttribute('class')||'') + ' pageComponentEl')
+            }
+            var styleNode = document.createElement('style');
+            styleNode.innerHTML = '.pageComponentEl{display:inline-block;padding:0;margin:20px 0;border-radius:4px;}.pageComponentEl .page-li{display:inline-block;list-style:none;}.pageComponentEl .page-li .page-btn,.pageComponentEl .page-li input[type="button"]{background-color:#fff;vertical-align:middle;display:inline-block;font-size:14px;border:1px solid #eee;border-radius:3px;padding:5px 10px;line-height:1.5;margin:0 1px;text-decoration:none;}.pageComponentEl .page-li .page-btn.enabled:hover,.pageComponentEl .page-li .page-btn.enabled:focus,.pageComponentEl .page-li input[type="button"]:hover,.pageComponentEl .page-li input[type="button"]:focus{color:#23527c;background-color:#eee;border-color:#ddd;}.pageComponentEl .page-li .page-btn.active{background-color:#337ab7;border-color:#337ab7;color:#fff;}.pageComponentEl .page-li .page-btn.disabled{cursor:not-allowed;background-color:#f5f5f5;color:#888;}.pageComponentEl .page-li .page-btn.disabled:hover,.pageComponentEl .page-li .page-btn.disabled:focus{color:#555;}.pageComponentEl .page-li i{font-style:normal;}.pageComponentEl .page-li input[type="button"]{cursor:pointer;}.page-btn.enabled{cursor:pointer;}'
+            document.querySelector('head').appendChild(styleNode);
+            this.init();
+        }
+
+    </script>
+</body>
+</html>
