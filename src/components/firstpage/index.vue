@@ -21,8 +21,8 @@
                         <p class="user-comment">{{item.text}}</p>
                         <div class="info">
                             <span class="time">{{item.time}}</span>
-                            <span class="like">like: {{item.like}}</span>
-                            <span class="hate">hate: {{item.hate}}</span>
+                            <span :class="'like'+(idIndexof('like',item.commentId)?' liked':'')" @click="likeOrHate('like', item.commentId)">like: {{item.like}}</span>
+                            <span :class="'hate'+(idIndexof('hate',item.commentId)?' hated':'')" @click="likeOrHate('hate', item.commentId)">hate: {{item.hate}}</span>
                             <span class="reply" @click="replyBtnClick(item, null)">回复</span>
                         </div>
                         <div class="reply-box">
@@ -34,8 +34,8 @@
                                     <p class="reply-text"><template v-if="item.id!=item2.toId">回复：<a class="at" href="javascript:;">@{{item2.toName}}</a></template>{{item2.text}}</p>
                                     <div class="info">
                                         <span class="time">{{item2.time}}</span>
-                                        <span class="like">like: {{item2.like}}</span>
-                                        <span class="hate">hate: {{item2.hate}}</span>
+                                        <span :class="'like'+(idIndexof('like',item2.commentId)?' liked':'')" @click="likeOrHate('like', item.commentId, item2.commentId)">like: {{item2.like}}</span>
+                                        <span :class="'hate'+(idIndexof('hate',item2.commentId)?' hated':'')" @click="likeOrHate('hate', item.commentId, item2.commentId)">hate: {{item2.hate}}</span>
                                         <span class="reply" @click="replyBtnClick(item, item2)">回复</span>
                                     </div>
                                 </div>
@@ -62,10 +62,12 @@ export default {
     data: function() {	
         return {
             my: {
-                id:564541,
+                id: 564541,
                 name: 'hmy',
                 level: 5,
-                face: "//static.hdslb.com/images/member/noface.gif",
+                face: '//static.hdslb.com/images/member/noface.gif',
+                like: localStorage.getItem('like')||'',
+                hate: localStorage.getItem('hate')||'',
             },
             myCommentText: '',
             reply: {
@@ -89,6 +91,45 @@ export default {
         
     },
     methods: {
+        //判断是否点击过like和hate
+        idIndexof: function(type,id){
+            return this.my[type].indexOf('|'+id+'|')>-1;
+        },
+        //点击like和hate
+        likeOrHate: function(type, id1, id2){
+            id2 = id2 || '';
+            let action = 1;
+            let id = id2 || id1;
+            if(this.my[type].indexOf('|'+id+'|')>=0){
+                this.my[type] = this.my[type].replace('|'+id+'|','');
+                action = -1;
+            }else{
+                this.my[type] += '|'+id+'|';
+            }
+            let com = this.commentListData.comment;
+            for(let i=0,length=com.length;i<length;i++){
+                if(com[i].commentId == id1){
+                    if(!id2){
+                        com[i][type] += action;
+                        break;
+                    }else{
+                        let rep = com[i].replyList;
+                        for(let j=0, length2=rep.length; j<length2; j++){
+                            if(rep[j].commentId==id2){
+                                rep[j][type] += action;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            this.$nextTick(()=>{
+                localStorage.setItem('commentListData', JSON.stringify(this.commentListData))
+                localStorage.setItem('like', this.my.like)
+                localStorage.setItem('hate', this.my.hate)
+            })
+        },
+        //新评论
         sendComment: function(){
             var ls = localStorage.getItem('commentListData');
             if(ls.match(/^\{.*\}$/) === null){
@@ -113,11 +154,8 @@ export default {
             localStorage.setItem('commentListData', JSON.stringify(ls));
             this.commentListData = ls;
         },
+        //回复评论
         sendReply: function(e){
-            // var target = e.target || e.srcElement;
-            // var pid = target.getAttribute('pid');
-            // var rid = target.getAttribute('rid')
-            // var text = this.$refs['textarea'+pif].innerHTML;
             if(!this.reply.rid){
                 this.$message('请选择你要回复的用户')
                 return;
@@ -262,7 +300,7 @@ textarea{outline: none;resize: none;}
 .comment-list .item-main{margin-left: 90px;}
 
 #comment-container .list-item .user-name{padding-bottom: 4px;}
-#comment-container .list-item .user-name:hover,
+#comment-container .list-item .user-name-a:hover,
 #comment-container .reply-box .reply-item .reply-con .reply-name:hover {color: rgb(0, 161, 214)}
 #comment-container .user-name-a{margin-right: 10px;}
 #comment-container .list-item .user-comment{padding: 2px 0;}
@@ -287,9 +325,13 @@ textarea{outline: none;resize: none;}
 .user-level-5{background: rgba(255, 108, 0, 1);}
 .user-level-6{background: rgba(255, 51, 0, 1);}
 
+
 .user-face{width: 90px;overflow: hidden;flex:none;display: block;padding: 10px 0 0 10px;float: left;}
 .user-face>img{width: 50px;height: 50px;border-radius: 60px;overflow: hidden;}
 .comment-list .user-face{padding: 0 0 0 10px;}
+.comment-list .liked{color: #00A1D6;}
+.comment-list .hate:hover{color: #ff7f9d;}
+.comment-list .hated{color: #ff7f9d;}
 .comment-send{margin: 10px 0;}
 .comment-send .comment-textarea{height: 70px;width: 100%;margin-bottom: 10px;padding: 0 80px 0 85px;position: relative;}
 .comment-send .user-face{position: absolute;left: 0;top: 0;padding: 10px 0 0 10px;}
