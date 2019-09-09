@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import compMenu from './components/pagemenu'
+import compMenu from './pages/pagemenu'
 export default {
   data() {
     return {

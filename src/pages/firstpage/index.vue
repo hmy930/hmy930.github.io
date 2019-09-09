@@ -81,6 +81,8 @@ export default {
             commentListData: { comment: [] }
         }
     },
+    components:{
+    },
     created: function(){
         this.getInitData();
     },

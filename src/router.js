@@ -1,8 +1,8 @@
-import mainRouterView from './components/RouterView.vue'
-import home from './components/home'
-import firstpage from './components/firstpage'
-import secondpage from './components/secondpage'
-import thirdpage from './components/thirdpage'
+import mainRouterView from './pages/RouterView.vue'
+import home from './pages/home'
+import firstpage from './pages/firstpage'
+import secondpage from './pages/secondpage'
+import thirdpage from './pages/thirdpage'
 
 
 
@@ -18,8 +18,8 @@ export const routes = [
         hidden: false,
         name: '菜单一',
         children: [
-            { path: '/one', component: firstpage, name: 'first page'},
-            { path: '/two', component: secondpage, name: 'second page'}
+            { path: '/one', component: firstpage, name: '评论区'},
+            { path: '/two', component: secondpage, name: '贪吃蛇'}
         ]
     },
     {

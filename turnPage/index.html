@@ -7,6 +7,7 @@
     <title>Document</title>
 </head>
 <body>
+    <div class="container"></div>
     <div id="pageContainer"></div>
     <script>
         //创建分页按钮
@@ -14,15 +15,19 @@
             el: document.getElementById('pageContainer'),//分页按钮容器ul
             total: 80,
             clickCallback: function () {//按钮点击事件
+                containerText(pageCon.page)
                 console.log(pageCon.total, pageCon.page)
             },
             switchPageFoo: function () {//跳页按钮事件
+                containerText(pageCon.page)
                 console.log(pageCon.total, pageCon.page)
             },
             changePageSizeFoo: function () {
+                containerText(pageCon.page)
                 console.log(pageCon.total, pageCon.page)
             }
         });//创建分页按钮 end
+        function containerText(text) { document.querySelector('.container').innerHTML = text; }
         function PageComponent(obj) {
             this.el = obj.el;
             this.pageSize = obj.pageSize || 10;
@@ -89,6 +94,7 @@
             }, false);
 
             this.init = function (total, page) {
+                var prevPage = this.page;
                 this.total = parseInt(total) || this.total;
                 this.page = parseInt(page) || this.page;
                 var html = '';
