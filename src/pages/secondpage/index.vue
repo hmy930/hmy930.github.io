@@ -9,7 +9,7 @@
             <div id="food" :style="{top: food.top +'px', left: food.left +'px'}" v-if="gameStart"></div>
         </div>
     </div>
-    
+    <!--  -->
 </template>
 
 <script>
